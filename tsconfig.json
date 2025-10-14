@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2021",
+    "moduleResolution": "node",
+    "strict": false,
+    "alwaysStrict": true,
+    "sourceMap": true,
+    "outDir": "./built/gaea",
+    "baseUrl": ".",
+    "paths": {},
+    "rootDir": "./src",
+    "allowJs": false,
+    "typeRoots": ["node_modules/@types"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "types": ["node"],
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules", "./built/**/*"]
+}

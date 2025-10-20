@@ -41,15 +41,34 @@ app.use(async (ctx) => {
       // mcp列表
       const tools = await client.listTools();
 
+      const messages = [
+        {
+          role: "system",
+          content: `你是一个 pingcode 工作助手。
+    1.  你的主要任务是帮助用户查询一些pingcode系统的数据。
+    2.  等等
+    `,
+        },
+        {
+          role: "user",
+          content: message,
+        },
+      ];
+
       const completion = await openai.chat.completions.create({
         model: "glm-4.5-flash",
-        messages: [{ role: "user", content: message }],
+        messages: messages as any,
         temperature: 0.5,
         max_tokens: 1024,
         tools: tools.tools.map((item) => ({
           type: "function",
-          function: item as any,
+          function: {
+            name: item.name,
+            description: item.description,
+            parameters: item.inputSchema,
+          },
         })),
+        tool_choice: "auto",
       });
 
       let reply = completion.choices[0].message.content || "";
@@ -61,7 +80,7 @@ app.use(async (ctx) => {
         if (toolCall.function.name === "pingcode_get_workitems") {
           const mcpResult = await client.callTool({
             name: "pingcode_get_workitems",
-            arguments: {},
+            arguments: JSON.parse(toolCall.function.arguments),
           });
           reply += `\nMCP 处理结果: ${JSON.stringify(mcpResult)}`;
         }

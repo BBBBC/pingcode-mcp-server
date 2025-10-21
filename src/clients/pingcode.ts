@@ -32,4 +32,37 @@ export class PingCodeClient {
     return response.data.values;
   }
 
+  async searchWorkItemStates(params: {
+    project_id: string;
+    work_item_type_id: string;
+  }) {
+    const response = await this.client.get('/v1/project/work_item/states', { params });
+    return response.data.values;
+  }
+
+  async searchWorkItemTypes(params: {
+    project_id: string;
+  }) {
+    const response = await this.client.get('/v1/project/work_item/types', { params });
+    return response.data.values;
+  }
+
+  async searchProjects(params: {
+    identifier?: string;
+    type?: string;
+  }) {
+    const response = await this.client.get('/v1/project/projects', { params });
+    return response.data.values;
+  }
+
+}
+
+export class PingCodeClientFactory {
+  private static _pingcodeClient: PingCodeClient;
+  static get pingcodeClient() {
+    if (!this._pingcodeClient) {
+      this._pingcodeClient = new PingCodeClient(); 
+    }
+    return this._pingcodeClient;
+  }
 }

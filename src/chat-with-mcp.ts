@@ -1,7 +1,7 @@
 import Koa from "koa";
 import bodyParser from "koa-bodyparser";
 import OpenAI from "openai";
-import { ChatCompletionMessageFunctionToolCall } from "openai/resources/index";
+import { ChatCompletionMessageFunctionToolCall, ChatCompletionMessageParam, ChatCompletionToolMessageParam } from "openai/resources/index";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
@@ -12,18 +12,94 @@ const openai = new OpenAI({
     baseURL: process.env.BASE_URL || "https://open.bigmodel.cn/api/paas/v4",
 });
 
-async function main() {
-    const client = new Client({
-        name: "test-client",
-        version: "1.0.0",
-    });
-    await client.connect(
-      new StdioClientTransport({
-        command: "node",
-        args: ["./built/gaea/index.js"],
-      })
-    );
+class Chat {
+    public mcpClient: Client;
+    constructor() {
+        this.mcpClient = new Client({
+            name: "test-client",
+            version: "1.0.0",
+        });
+    }
 
+    async chat(param: { message: ChatCompletionMessageParam | ChatCompletionMessageParam[]; step?: number }) {
+        const { message } = param;
+        const step = param.step ?? 0;
+        if (!message) {
+            throw new Error("params invalid");
+        }
+        if (step && step > 10) {
+            throw new Error("Recursive too deep exception");
+        }
+
+        const chatCompletionMessage: ChatCompletionMessageParam[] = [];
+        if (step === 0) {
+            chatCompletionMessage.push({
+                role: "system",
+                content: `你是一个 pingcode 工作助手。
+                    1.  你的主要任务是帮助用户查询一些pingcode系统的数据。
+                    2.  等等
+                `,
+            });
+        }
+        if (!Array.isArray(message)) {
+            chatCompletionMessage.push(message);
+        } else {
+            chatCompletionMessage.push(...message);
+        }
+
+        // mcp列表
+        const tools = await this.mcpClient.listTools();
+        const completion = await openai.chat.completions.create({
+            model: "glm-4.5-flash",
+            messages: chatCompletionMessage,
+            temperature: 0.5,
+            max_tokens: 1024,
+            tools: tools.tools.map((item) => ({
+                type: "function",
+                function: {
+                    name: item.name,
+                    description: item.description,
+                    parameters: item.inputSchema,
+                },
+            })),
+            tool_choice: "auto"
+        });
+    
+        switch (completion.choices[0].finish_reason) {
+            case "tool_calls": {
+                for (const toolCall of completion.choices[0].message.tool_calls as ChatCompletionMessageFunctionToolCall[]) {
+                    const mcpResult = await this.mcpClient.callTool({
+                        name: toolCall.function.name,
+                        arguments: JSON.parse(toolCall.function.arguments),
+                    });
+                    const toolMessage: ChatCompletionToolMessageParam = {
+                        tool_call_id: toolCall.id,
+                        role: 'tool',
+                        content: JSON.stringify(mcpResult),
+                    };
+                    chatCompletionMessage.push(toolMessage);
+                    return await this.chat({ message: chatCompletionMessage, step: step + 1 });
+                }
+                break;
+            }
+            case "stop": {
+                return completion.choices[0].message.content;
+            }
+            default: {
+                return completion.choices[0].message.content;
+            }
+        }
+    }
+}
+
+async function main() {
+    const chat = new Chat();
+    await chat.mcpClient.connect(
+        new StdioClientTransport({
+          command: "node",
+          args: ["./built/gaea/index.js"],
+        })
+    );
     const app = new Koa();
     app.use(bodyParser());
     app.use(async (ctx) => {
@@ -34,60 +110,14 @@ async function main() {
                 ctx.body = { error: "Missing message" };
                 return;
             }
-
-            const messages = [
-                {
-                    role: "system",
-                    content: `你是一个 pingcode 工作助手。
-                        1.  你的主要任务是帮助用户查询一些pingcode系统的数据。
-                        2.  等等
-                    `,
-                },
-                {
-                    role: "user",
-                    content: message,
-                },
-            ];
-            // mcp列表
-            const tools = await client.listTools();
-            const completion = await openai.chat.completions.create({
-                model: "glm-4.5-flash",
-                messages: messages as any,
-                temperature: 0.5,
-                max_tokens: 1024,
-                tools: tools.tools.map((item) => ({
-                    type: "function",
-                    function: {
-                        name: item.name,
-                        description: item.description,
-                        parameters: item.inputSchema,
-                    },
-                })),
-                tool_choice: "auto"
-            });
-
-            let reply = completion.choices[0].message.content || "";
-
-            // 如果 LLM 返回工具调用，执行 MCP
-            if (completion.choices[0].message.tool_calls) {
-                const toolCall = completion.choices[0].message
-                .tool_calls[0] as ChatCompletionMessageFunctionToolCall;
-                if (toolCall.function.name === "pingcode_get_workitems") {
-                const mcpResult = await client.callTool({
-                    name: "pingcode_get_workitems",
-                    arguments: JSON.parse(toolCall.function.arguments),
-                });
-                reply += `\nMCP 处理结果: ${JSON.stringify(mcpResult)}`;
-                }
-            }
-
+            const reply = await chat.chat({ message: { role: "user", content: message } });
             ctx.body = { response: reply };
         }
     });
 
     const PORT = process.env.PORT || 12121;
     app.listen(PORT, () => {
-    console.log(`集成 MCP 对话 API 运行在 http://localhost:${PORT}`);
+        console.log(`集成 MCP 对话 API 运行在 http://localhost:${PORT}`);
     });
 }
 

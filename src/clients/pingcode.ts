@@ -27,9 +27,11 @@ export class PingCodeClient {
     type_ids?: string;
     state_ids?: string;
     assignee_ids?: string;
+    page_index?: number;
+    page_size?: number;
   }) {
     const response = await this.client.get('/v1/project/work_items', { params });
-    return response.data.values;
+    return response.data;
   }
 
   async searchWorkItemStates(params: {

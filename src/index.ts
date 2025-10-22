@@ -1,7 +1,7 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ToolsetProject, ToolsetProjectWorkitem } from './tools/project';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ToolsetPersonal } from './tools/global';
+import { ToolsetDatetime, ToolsetPersonal } from './tools/global';
 
 // 创建 MCP 服务器
 const server = new McpServer(
@@ -20,7 +20,8 @@ const server = new McpServer(
 [
   new ToolsetProjectWorkitem(),
   new ToolsetProject(),
-  new ToolsetPersonal()
+  new ToolsetPersonal(),
+  new ToolsetDatetime()
 ].forEach(x => x.register(server));
 
 async function main() {

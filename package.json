@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "start": "ts-node ./src/chat-with-mcp.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "ts-node ./src/tests/test-client.ts"
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +20,7 @@
     "axios": "^1.12.2",
     "koa": "^3.0.1",
     "koa-bodyparser": "^4.4.1",
+    "moment-timezone": "^0.6.0",
     "openai": "^6.3.0"
   }
 }

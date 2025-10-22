@@ -9,7 +9,7 @@ export class ToolsetProjectWorkitem implements Toolset {
     public register(server: McpServer): void {
         server.tool(
             "pingcode_get_workitems",
-            "当需要获取工作项列表，或工作项详细信息的时候，调用此工具。此工具返回工作项的编号、类型、标题、状态、状态类型、负责人、完成时间等信息",
+            "当需要获取工作项列表，或工作项详细信息的时候，调用此工具。此工具分页获取数据，返回工作项的编号、类型、标题、状态、状态类型、负责人、完成时间等信息",
             {
                 identifier: z.string({
                   description: "工作项编号，以井号开头，例如用户输入#TINFR-1234，则编号为TINFR-1234"
@@ -31,6 +31,12 @@ export class ToolsetProjectWorkitem implements Toolset {
                 }).optional(),
                 end_between: z.string({
                   description: "结束时间介于的时间范围，通过','分割起始时间。比如1580000000,1590000000表示开始时间介于两个时间之间；,1590000000表示开始时间小于该时间；1580000000表示开始时间大于该时间。"
+                }).optional(),
+                page_index: z.number({
+                  description: "分页参数的页码，从 0 开始，最大 2 页，默认是 0"
+                }).optional(),
+                page_size: z.number({
+                  description: "分页参数的单页条目数，最大 100 条，默认 30 条数据"
                 }).optional(),
             },
             async args => {
@@ -75,19 +81,21 @@ export class ToolsetProjectWorkitem implements Toolset {
 async function handleSearchWorkItems(args): Promise<CallToolResult> {
   try {
     const client = PingCodeClientFactory.pingcodeClient;
-    const workItems = await client.searchWorkItems({
+    const { page_index, page_size, total, values: workItems } = await client.searchWorkItems({
         identifier: args.identifier,
         project_ids: args.project_ids,
         type_ids: args.type_ids,
         state_ids: args.state_ids,
-        assignee_ids: args.assignee_ids
+        assignee_ids: args.assignee_ids,
+        page_index: args.page_index,
+        page_size: args.page_size,
     });
 
     return {
       content: [
         {
             type: 'text',
-            text: `找到 ${workItems.length} 个工作项:\n\n${workItems.map(item => 
+            text: `找到 ${total} 个工作项:\n\n${workItems.map(item => 
                 `• ${item.identifier}[${item.type}]: ${item.title} 状态: ${item.state?.name}(状态类型: ${item.state?.type}) 完成时间: ${item.completed_at ?? "未完成"}  - 负责人: ${item.assignee?.name || '未指派'}`
             ).join('\n')}`
         }

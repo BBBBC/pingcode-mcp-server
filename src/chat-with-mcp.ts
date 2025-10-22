@@ -128,7 +128,7 @@ async function main() {
         return;
       }
       const reply = await chat.chat({ message: { role: "user", content: chat.resolveCommandMsg(message) } });
-      ctx.body = { code: HttpStatusCode.Ok, response: reply };
+      ctx.body = { code: HttpStatusCode.Ok, data: { value: reply } };
     }
   });
 

@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import { ChatCompletionMessageFunctionToolCall, ChatCompletionMessageParam, ChatCompletionToolMessageParam } from "openai/resources/index";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { HttpStatusCode } from "axios";
 
 // OneAPI 配置
 const openai = new OpenAI({
@@ -122,12 +123,12 @@ async function main() {
     if (ctx.method === "POST" && ctx.path === "/api/chat") {
       const { message } = ctx.request.body;
       if (!message) {
-        ctx.status = 400;
+        ctx.status = HttpStatusCode.BadRequest;
         ctx.body = { error: "Missing message" };
         return;
       }
       const reply = await chat.chat({ message: { role: "user", content: chat.resolveCommandMsg(message) } });
-      ctx.body = { response: reply };
+      ctx.body = { code: HttpStatusCode.Ok, response: reply };
     }
   });
 

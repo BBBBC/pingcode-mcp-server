@@ -55,6 +55,11 @@ export class PingCodeClient {
     return response.data.values;
   }
 
+  async searchMyself() {
+    const response = await this.client.get('/v1/myself');
+    return response.data;
+  }
+
 }
 
 export class PingCodeClientFactory {

@@ -9,7 +9,7 @@ export class ToolsetProjectWorkitem implements Toolset {
     public register(server: McpServer): void {
         server.tool(
             "pingcode_get_workitems",
-            "当需要获取工作项列表，或工作项详细信息的时候，调用此工具。",
+            "当需要获取工作项列表，或工作项详细信息的时候，调用此工具。此工具返回工作项的编号、类型、标题、状态、状态类型、负责人、完成时间等信息",
             {
                 identifier: z.string({
                   description: "工作项编号，以井号开头，例如用户输入#TINFR-1234，则编号为TINFR-1234"
@@ -54,21 +54,21 @@ export class ToolsetProjectWorkitem implements Toolset {
           async args => {
               return handleSearchWorkItemStates(args);
           }
-      );
+        );
 
-      server.tool(
-        "pingcode_get_workitem_types",
-        "当需要获取工作项类型信息或者类型列表的时候，调用此工具。",
-        {
-            project_id: z.string({
-              description: "项目的id",
-              required_error: "项目id是必须的参数"
-            }),
-        },
-        async args => {
-            return handleSearchWorkItemTypes(args);
-        }
-    );
+        server.tool(
+          "pingcode_get_workitem_types",
+          "当需要获取工作项类型信息或者类型列表的时候，调用此工具。",
+          {
+              project_id: z.string({
+                description: "项目的id",
+                required_error: "项目id是必须的参数"
+              }),
+          },
+          async args => {
+              return handleSearchWorkItemTypes(args);
+          }
+        );
     }
 }
 
@@ -88,7 +88,7 @@ async function handleSearchWorkItems(args): Promise<CallToolResult> {
         {
             type: 'text',
             text: `找到 ${workItems.length} 个工作项:\n\n${workItems.map(item => 
-                `• ${item.identifier}[${item.type}]: ${item.title} (${item.state?.name}) - 负责人: ${item.assignee?.name || '未指派'}`
+                `• ${item.identifier}[${item.type}]: ${item.title} 状态: ${item.state?.name}(状态类型: ${item.state?.type}) 完成时间: ${item.completed_at ?? "未完成"}  - 负责人: ${item.assignee?.name || '未指派'}`
             ).join('\n')}`
         }
       ],

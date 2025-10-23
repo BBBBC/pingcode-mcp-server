@@ -23,8 +23,8 @@ class Chat {
     });
   }
 
-    async chat(param: { message: ChatCompletionMessageParam | ChatCompletionMessageParam[]; step?: number }) {
-    const { message } = param;
+    async chat(param: { message: ChatCompletionMessageParam | ChatCompletionMessageParam[]; step?: number, identifier?: string; }) {
+    const { message, identifier } = param;
     const step = param.step ?? 0;
     if (!message) {
       throw new Error("params invalid");
@@ -39,6 +39,12 @@ class Chat {
         role: "system",
         content: prompt.system,
       });
+      if (identifier) {
+        chatCompletionMessage.push({
+            role: "system",
+            content: `当前项目编号是：${identifier}`,
+          });
+      }
     }
     if (!Array.isArray(message)) {
       chatCompletionMessage.push(message);
@@ -117,13 +123,13 @@ async function main() {
   app.use(bodyParser());
   app.use(async (ctx) => {
     if (ctx.method === "POST" && ctx.path === "/api/chat") {
-      const { message } = ctx.request.body;
+      const { message, identifier } = ctx.request.body;
       if (!message) {
         ctx.status = HttpStatusCode.BadRequest;
         ctx.body = { error: "Missing message" };
         return;
       }
-      const reply = await chat.chat({ message: { role: "user", content: chat.resolveCommandMsg(message) } });
+      const reply = await chat.chat({ message: { role: "user", content: chat.resolveCommandMsg(message) }, identifier });
       ctx.body = { code: HttpStatusCode.Ok, data: { value: reply } };
     }
   });

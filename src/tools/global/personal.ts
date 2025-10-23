@@ -9,6 +9,7 @@ export class ToolsetPersonal implements Toolset {
         server.tool(
             "pingcode_get_myself",
             "当需要获取用户个人信息时，调用此工具。比如‘我’，此工具会返回用户的 userId、name",
+            {},
             async args => {
                 return handleSearchMyself(args);
             }
@@ -25,7 +26,7 @@ async function handleSearchMyself(args): Promise<CallToolResult> {
       content: [
         {
             type: 'text',
-            text: JSON.stringify(userInfo)
+            text: `当前用户 Id 是：${userInfo.id} 名称是：${userInfo.name}`
         }
       ],
     };

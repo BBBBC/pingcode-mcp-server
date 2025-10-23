@@ -12,7 +12,7 @@ export class ToolsetProjectWorkitem implements Toolset {
             "当需要获取工作项列表，或工作项详细信息的时候，调用此工具。此工具分页获取数据，返回工作项的编号、类型、标题、状态、状态类型、负责人、完成时间等信息",
             {
                 identifier: z.string({
-                  description: "工作项编号，以井号开头，例如用户输入#TINFR-1234，则编号为TINFR-1234"
+                  description: "工作项编号，不包含 # ，例如用户输入#TINFR-1234，则编号为TINFR-1234"
                 }).optional(),
                 project_ids: z.string({
                   description: "项目的id，使用','分割，最多只能20个"
@@ -42,24 +42,6 @@ export class ToolsetProjectWorkitem implements Toolset {
             async args => {
                 return handleSearchWorkItems(args);
             }
-        );
-
-        server.tool(
-          "pingcode_get_workitem_states",
-          "当需要获取工作项状态信息或者状态列表的时候，调用此工具。",
-          {
-              project_id: z.string({
-                description: "项目的id",
-                required_error: "项目id是必须的参数"
-              }),
-              work_item_type_id: z.string({
-                description: "工作项类型的id",
-                required_error: "工作项类型id是必须的参数"
-              }),
-          },
-          async args => {
-              return handleSearchWorkItemStates(args);
-          }
         );
 
         server.tool(

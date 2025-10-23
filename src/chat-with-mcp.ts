@@ -28,7 +28,7 @@ class Chat {
     if (!message) {
       throw new Error("params invalid");
     }
-    if (step && step > 10) {
+    if (step && step > 20) {
       throw new Error("Recursive too deep exception");
     }
 
@@ -68,7 +68,7 @@ class Chat {
 
     switch (completion.choices[0].finish_reason) {
       case "tool_calls": {
-                for (const toolCall of completion.choices[0].message.tool_calls as ChatCompletionMessageFunctionToolCall[]) {
+        for (const toolCall of completion.choices[0].message.tool_calls as ChatCompletionMessageFunctionToolCall[]) {
           const mcpResult = await this.mcpClient.callTool({
             name: toolCall.function.name,
             arguments: JSON.parse(toolCall.function.arguments),
@@ -79,9 +79,8 @@ class Chat {
             content: JSON.stringify(mcpResult),
           };
           chatCompletionMessage.push(toolMessage);
-          return await this.chat({ message: chatCompletionMessage, step: step + 1 });
         }
-        break;
+        return await this.chat({ message: chatCompletionMessage, step: step + 1 });
       }
       case "stop": {
         return completion.choices[0].message.content;

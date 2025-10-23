@@ -12,10 +12,10 @@ export class ToolsetProject implements Toolset {
             "当需要获取项目信息或者项目列表的时候，调用此工具。",
             {
                 identifier: z.string({
-                    description: "项目编号，以井号开头，例如用户输入#TINFR，则编号为TINFR",
+                    description: "项目编号，不包含 # ，例如用户输入#TINFR，则编号为TINFR",
                 }).optional(),
                 type: z.string({
-                    description: "项目的类型"
+                    description: "项目的类型，允许值: scrum, kanban, waterfall, hybrid"
                 }).optional()
             },
             async args => {
@@ -38,7 +38,7 @@ async function handleSearchProjects(args): Promise<CallToolResult> {
         {
             type: 'text',
             text: `找到 ${projects.length} 个项目:\n\n${projects.map(item => 
-                `• ${item.identifier}[${item.type}]: ${item.name} (${item.state?.name}) - 负责人: ${item.assignee?.name || '未指派'}`
+                `• ${item.identifier}[${item.type}]: ${item.name} (${item.state?.name}) - 负责人: ${item.assignee?.name || '未指派'} id: ${item.id}`
             ).join('\n')}`
         }
       ],

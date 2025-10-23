@@ -9,6 +9,7 @@ export class ToolsetDatetime implements Toolset {
         server.tool(
             "pingcode_get_datetime",
             "当需要获取时间信息时，调用此工具，此工具会返回当前时间",
+            {},
             async args => {
                 return handleSearchDatetime(args);
             }

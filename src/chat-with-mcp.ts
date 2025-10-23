@@ -5,6 +5,7 @@ import { ChatCompletionMessageFunctionToolCall, ChatCompletionMessageParam, Chat
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { HttpStatusCode } from "axios";
+import { prompt } from "./constants";
 
 // OneAPI 配置
 const openai = new OpenAI({
@@ -36,10 +37,7 @@ class Chat {
     if (step === 0) {
       chatCompletionMessage.push({
         role: "system",
-        content: `你是一个 pingcode 工作助手。
-                    1.  你的主要任务是帮助用户查询一些pingcode系统的数据。
-                    2.  等等
-                `,
+        content: prompt.system,
       });
     }
     if (!Array.isArray(message)) {
@@ -95,11 +93,10 @@ class Chat {
     let q: string;
     switch (message) {
       case "work-summary":
-        q =
-          "分析一下我负责的工作项，哪些完成了，哪些没完成。要求精简一下回复，不说具体工作项，给个综述，和进度提醒";
+        q = prompt["work-summary"];
         break;
       case "morning":
-        q = "新的一天工作开始，问候一下小主子";
+        q = prompt.morning;
         break;
       default:
         q = message;

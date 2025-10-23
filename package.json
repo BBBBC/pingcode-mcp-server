@@ -5,13 +5,16 @@
   "scripts": {
     "build": "tsc",
     "start": "ts-node ./src/chat-with-mcp.ts",
-    "test": "ts-node ./src/tests/test-client.ts"
+    "test": "ts-node ./src/tests/test-client.ts",
+    "start:watch": "nodemon --exec ts-node src/chat-with-mcp.ts"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
     "@types/node": "^24.7.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "dependencies": {

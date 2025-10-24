@@ -104,6 +104,9 @@ class Chat {
       case "morning":
         q = prompt.morning;
         break;
+      case "lunch":
+        q = prompt.lunch;
+        break;
       default:
         q = message;
     }

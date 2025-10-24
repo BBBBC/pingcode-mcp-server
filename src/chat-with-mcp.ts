@@ -14,6 +14,11 @@ const openai = new OpenAI({
   baseURL: process.env.BASE_URL || "https://open.bigmodel.cn/api/paas/v4",
 });
 
+const ds = new OpenAI({
+    apiKey: "sk-900fea4a048c43e380618962050c684d",
+    baseURL: "https://api.deepseek.com/v1"
+});
+
 class Chat {
   public mcpClient: Client;
   constructor() {
@@ -56,6 +61,7 @@ class Chat {
     const tools = await this.mcpClient.listTools();
     const completion = await openai.chat.completions.create({
       model: "glm-4.5-flash",
+    //   model: "deepseek-chat",
       messages: chatCompletionMessage,
       temperature: 0.5,
       max_tokens: 1024,
@@ -70,6 +76,7 @@ class Chat {
             tool_choice: "auto"
     });
 
+    chatCompletionMessage.push(completion.choices[0].message);
     switch (completion.choices[0].finish_reason) {
       case "tool_calls": {
         for (const toolCall of completion.choices[0].message.tool_calls as ChatCompletionMessageFunctionToolCall[]) {
